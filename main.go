@@ -1,7 +1,10 @@
 package main
 
-import "fmt"
+import (
+	"bufio"
+	"os"
+)
 
 func main() {
-	fmt.Println("Hello, World!")
+	runREPL(bufio.NewScanner(os.Stdin), commandMap)
 }

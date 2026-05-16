@@ -1,7 +1,11 @@
 package main
 
 import (
+	"bufio"
+	"bytes"
+	"os"
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -39,5 +43,26 @@ func TestCleanInput(t *testing.T) {
 				t.Errorf("%s: expected word: %v, got: %v", c.name, expectedWord, word)
 			}
 		}
+	}
+}
+
+func TestRunREPL(t *testing.T) {
+	// Capture stdout
+	r, w, _ := os.Pipe()
+	old := os.Stdout
+	os.Stdout = w
+
+	input := strings.NewReader("foobar\n")
+	scanner := bufio.NewScanner(input)
+	runREPL(scanner, map[string]cliCommand{})
+
+	w.Close()
+	os.Stdout = old
+
+	var buf bytes.Buffer
+	buf.ReadFrom(r)
+
+	if !strings.Contains(buf.String(), "Unknown command") {
+		t.Errorf("expected 'Unknown command', got %q", buf.String())
 	}
 }

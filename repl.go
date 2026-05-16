@@ -9,13 +9,15 @@ import (
 func runREPL(scanner *bufio.Scanner, commands map[string]cliCommand) {
 	for {
 		fmt.Print("Pokedex > ")
-
+		if !scanner.Scan() {
+			break
+		}
 		cleanedInput := cleanInput(scanner.Text())
 		if len(cleanedInput) == 0 {
 			continue
 		}
 
-		command, exists := commandMap[cleanedInput[0]]
+		command, exists := commands[cleanedInput[0]]
 		if exists {
 			command.callback()
 		} else {

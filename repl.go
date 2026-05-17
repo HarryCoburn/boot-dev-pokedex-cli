@@ -7,9 +7,10 @@ import (
 )
 
 func setupREPL(scanner *bufio.Scanner) {
+	startURL := "https://pokeapi.co/api/v2/location-area/"
 	config := &Config{
-		Previous: "",
-		Next:     "https://pokeapi.co/api/v2/location-area/",
+		Previous: nil,
+		Next:     &startURL,
 	}
 
 	commands := map[string]cliCommand{}

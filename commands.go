@@ -2,17 +2,15 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
-	"io"
-	"log"
-	"net/http"
 	"os"
+
+	"github.com/HarryCoburn/boot-dev-pokedex-cli/internal/apiclient"
 )
 
 type Config struct { // Holds our place in the API pages
-	Next     string
-	Previous string
+	Next     *string
+	Previous *string
 }
 
 type cliCommand struct {
@@ -27,8 +25,8 @@ type Location struct {
 }
 
 type LocationAreaResponse struct {
-	Next      string     `json:"next"`
-	Previous  string     `json:"previous"`
+	Next      *string    `json:"next"`
+	Previous  *string    `json:"previous"`
 	Locations []Location `json:"results"`
 }
 
@@ -48,18 +46,9 @@ func commandHelp(config *Config, commands map[string]cliCommand) error {
 }
 
 func commandMap(config *Config) error {
-	res, err := http.Get(config.Next)
+	body, err := apiclient.CallAPI(*config.Next)
 	if err != nil {
-		return errors.New("Cannot reach the PokeAPI")
-	}
-	body, err := io.ReadAll(res.Body)
-
-	res.Body.Close()
-	if res.StatusCode > 299 {
-		return fmt.Errorf("Response failed with status code: %d and\nbody: %s\n", res.StatusCode, body)
-	}
-	if err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("API call failed")
 	}
 	var locations LocationAreaResponse
 	locationErr := json.Unmarshal(body, &locations)
@@ -76,22 +65,13 @@ func commandMap(config *Config) error {
 }
 
 func commandMapb(config *Config) error {
-	if config.Previous == "" {
+	if config.Previous == nil {
 		fmt.Println("You're on the first page")
 		return nil
 	}
-	res, err := http.Get(config.Previous)
+	body, err := apiclient.CallAPI(*config.Previous)
 	if err != nil {
-		return errors.New("Cannot reach the PokeAPI")
-	}
-	body, err := io.ReadAll(res.Body)
-
-	res.Body.Close()
-	if res.StatusCode > 299 {
-		return fmt.Errorf("Response failed with status code: %d and\nbody: %s\n", res.StatusCode, body)
-	}
-	if err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("API call failed")
 	}
 	var locations LocationAreaResponse
 	locationErr := json.Unmarshal(body, &locations)

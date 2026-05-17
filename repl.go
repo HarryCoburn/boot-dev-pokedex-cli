@@ -19,7 +19,7 @@ func runREPL(scanner *bufio.Scanner, commands map[string]cliCommand) {
 
 		command, exists := commands[cleanedInput[0]]
 		if exists {
-			command.callback()
+			command.callback(config)
 		} else {
 			fmt.Println("Unknown command")
 		}

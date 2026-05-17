@@ -52,9 +52,10 @@ func TestRunREPL(t *testing.T) {
 	old := os.Stdout
 	os.Stdout = w
 
+	config := &Config{}
 	input := strings.NewReader("foobar\n")
 	scanner := bufio.NewScanner(input)
-	runREPL(scanner, map[string]cliCommand{})
+	runREPL(scanner, map[string]cliCommand{}, config)
 
 	w.Close()
 	os.Stdout = old

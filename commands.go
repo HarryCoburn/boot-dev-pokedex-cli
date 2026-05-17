@@ -9,8 +9,9 @@ import (
 )
 
 type Config struct { // Holds our place in the API pages
-	Next     *string
-	Previous *string
+	Next      *string
+	Previous  *string
+	apiCaller func(string) ([]byte, error)
 }
 
 type cliCommand struct {
@@ -30,6 +31,44 @@ type LocationAreaResponse struct {
 	Locations []Location `json:"results"`
 }
 
+func buildCommands(config *Config) map[string]cliCommand {
+	commands := map[string]cliCommand{}
+
+	commands["help"] = cliCommand{
+		name:        "help",
+		description: "Displays a help message",
+		callback: func(config *Config) error {
+			fmt.Println("Welcome to the Pokedex!")
+			fmt.Printf("Usage:\n\n")
+			for _, command := range commands {
+				fmt.Printf("%s: %s\n", command.name, command.description)
+			}
+			return nil
+		},
+	}
+
+	commands["exit"] = cliCommand{
+		name:        "exit",
+		description: "Exit the Pokedex",
+		callback:    commandExit,
+	}
+
+	commands["map"] = cliCommand{
+		name:        "map",
+		description: "Displays the next 20 location areas in the Pokemon world",
+		callback:    commandMap,
+	}
+
+	commands["mapb"] = cliCommand{
+		name:        "mapb",
+		description: "Displays the previous 20 location areas in the Pokemon world",
+		callback:    commandMapb,
+	}
+
+	return commands
+
+}
+
 func commandExit(config *Config) error {
 	fmt.Println("Closing the Pokedex... Goodbye!")
 	os.Exit(0)
@@ -46,7 +85,11 @@ func commandHelp(config *Config, commands map[string]cliCommand) error {
 }
 
 func commandMap(config *Config) error {
-	body, err := apiclient.CallAPI(*config.Next)
+	caller := config.apiCaller
+	if caller == nil {
+		caller = apiclient.CallAPI
+	}
+	body, err := caller(*config.Next)
 	if err != nil {
 		return fmt.Errorf("API call failed")
 	}
@@ -69,7 +112,11 @@ func commandMapb(config *Config) error {
 		fmt.Println("You're on the first page")
 		return nil
 	}
-	body, err := apiclient.CallAPI(*config.Previous)
+	caller := config.apiCaller
+	if caller == nil {
+		caller = apiclient.CallAPI
+	}
+	body, err := caller(*config.Previous)
 	if err != nil {
 		return fmt.Errorf("API call failed")
 	}

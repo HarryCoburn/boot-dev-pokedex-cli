@@ -6,42 +6,46 @@ import (
 	"strings"
 )
 
-
-
 func setupREPL(scanner *bufio.Scanner) {
 	config := &Config{
 		Previous: "",
 		Next:     "https://pokeapi.co/api/v2/location-area/",
 	}
 
-	commandMap := map[string]cliCommand{}
+	commands := map[string]cliCommand{}
 
-	commandMap["help"] = cliCommand{
+	commands["help"] = cliCommand{
 		name:        "help",
 		description: "Displays a help message",
 		callback: func(config *Config) error {
 			fmt.Println("Welcome to the Pokedex!")
 			fmt.Printf("Usage:\n\n")
-			for _, command := range commandMap {
+			for _, command := range commands {
 				fmt.Printf("%s: %s\n", command.name, command.description)
 			}
 			return nil
 		},
 	}
 
-	commandMap["exit"] = cliCommand{
+	commands["exit"] = cliCommand{
 		name:        "exit",
 		description: "Exit the Pokedex",
 		callback:    commandExit,
 	}
 
-	commandMap["map"] = cliCommand{
+	commands["map"] = cliCommand{
 		name:        "map",
 		description: "Displays the next 20 location areas in the Pokemon world",
-		callback:    commandLocationMap,
+		callback:    commandMap,
 	}
 
-	runREPL(scanner, commandMap, config)
+	commands["mapb"] = cliCommand{
+		name:        "mapb",
+		description: "Displays the previous 20 location areas in the Pokemon world",
+		callback:    commandMapb,
+	}
+
+	runREPL(scanner, commands, config)
 
 }
 

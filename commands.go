@@ -47,8 +47,40 @@ func commandHelp(config *Config, commands map[string]cliCommand) error {
 	return nil
 }
 
-func commandLocationMap(config *Config) error {
+func commandMap(config *Config) error {
 	res, err := http.Get(config.Next)
+	if err != nil {
+		return errors.New("Cannot reach the PokeAPI")
+	}
+	body, err := io.ReadAll(res.Body)
+
+	res.Body.Close()
+	if res.StatusCode > 299 {
+		return fmt.Errorf("Response failed with status code: %d and\nbody: %s\n", res.StatusCode, body)
+	}
+	if err != nil {
+		log.Fatal(err)
+	}
+	var locations LocationAreaResponse
+	locationErr := json.Unmarshal(body, &locations)
+	if locationErr != nil {
+		return fmt.Errorf("Response returned no data to match the Location struct")
+	}
+	config.Next = locations.Next
+	config.Previous = locations.Previous
+	for _, location := range locations.Locations {
+		fmt.Println(location.Name)
+	}
+
+	return nil
+}
+
+func commandMapb(config *Config) error {
+	if config.Previous == "" {
+		fmt.Println("You're on the first page")
+		return nil
+	}
+	res, err := http.Get(config.Previous)
 	if err != nil {
 		return errors.New("Cannot reach the PokeAPI")
 	}

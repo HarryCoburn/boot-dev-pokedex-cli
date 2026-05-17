@@ -10,6 +10,11 @@ import (
 	"os"
 )
 
+type Config struct { // Holds our place in the API pages
+	Next     string
+	Previous string
+}
+
 type cliCommand struct {
 	name        string
 	description string
@@ -27,49 +32,16 @@ type LocationAreaResponse struct {
 	Locations []Location `json:"results"`
 }
 
-type Config struct { // Holds our place in the API pages
-	Next     string
-	Previous string
-}
-
-var commandMap map[string]cliCommand
-var config *Config
-
-func init() {
-	commandMap = map[string]cliCommand{
-		"exit": {
-			name:        "exit",
-			description: "Exit the Pokedex",
-			callback:    commandExit,
-		},
-		"help": {
-			name:        "help",
-			description: "Displays a help message",
-			callback:    commandHelp,
-		},
-		"map": {
-			name:        "map",
-			description: "Displays the next 20 location areas in the Pokemon world",
-			callback:    commandLocationMap,
-		},
-	}
-	config = &Config{
-		Previous: "",
-		Next:     "https://pokeapi.co/api/v2/location-area/",
-	}
-
-}
-
 func commandExit(config *Config) error {
 	fmt.Println("Closing the Pokedex... Goodbye!")
 	os.Exit(0)
 	return nil
 }
 
-func commandHelp(config *Config) error {
+func commandHelp(config *Config, commands map[string]cliCommand) error {
 	fmt.Println("Welcome to the Pokedex!")
 	fmt.Printf("Usage:\n\n")
-	for _, command := range commandMap {
+	for _, command := range commands {
 		fmt.Printf("%s: %s\n", command.name, command.description)
 	}
 	return nil
@@ -83,7 +55,6 @@ func commandLocationMap(config *Config) error {
 	body, err := io.ReadAll(res.Body)
 
 	res.Body.Close()
-	fmt.Println(string(body))
 	if res.StatusCode > 299 {
 		return fmt.Errorf("Response failed with status code: %d and\nbody: %s\n", res.StatusCode, body)
 	}

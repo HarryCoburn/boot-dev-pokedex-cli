@@ -6,5 +6,5 @@ import (
 )
 
 func main() {
-	runREPL(bufio.NewScanner(os.Stdin), commandMap)
+	setupREPL(bufio.NewScanner(os.Stdin))
 }

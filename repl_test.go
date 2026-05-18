@@ -7,6 +7,9 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+	"time"
+
+	"github.com/HarryCoburn/boot-dev-pokedex-cli/internal/pokecache"
 )
 
 func TestCleanInput(t *testing.T) {
@@ -55,7 +58,8 @@ func TestRunREPL(t *testing.T) {
 	config := &Config{}
 	input := strings.NewReader("foobar\n")
 	scanner := bufio.NewScanner(input)
-	runREPL(scanner, map[string]cliCommand{}, config)
+	cache := pokecache.NewCache(5 * time.Second)
+	runREPL(scanner, map[string]cliCommand{}, config, cache)
 
 	w.Close()
 	os.Stdout = old

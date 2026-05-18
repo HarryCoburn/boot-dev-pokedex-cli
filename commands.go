@@ -6,12 +6,15 @@ import (
 	"os"
 
 	"github.com/HarryCoburn/boot-dev-pokedex-cli/internal/apiclient"
+	"github.com/HarryCoburn/boot-dev-pokedex-cli/internal/pokecache"
 )
 
 type Config struct { // Holds our place in the API pages
 	Next      *string
 	Previous  *string
 	apiCaller func(string) ([]byte, error)
+	Cache     *pokecache.Cache
+	Commands  map[string]cliCommand
 }
 
 type cliCommand struct {
@@ -31,42 +34,30 @@ type LocationAreaResponse struct {
 	Locations []Location `json:"results"`
 }
 
-func buildCommands(config *Config) map[string]cliCommand {
-	commands := map[string]cliCommand{}
-
-	commands["help"] = cliCommand{
+func buildCommands(config *Config) {
+	config.Commands["help"] = cliCommand{
 		name:        "help",
 		description: "Displays a help message",
-		callback: func(config *Config) error {
-			fmt.Println("Welcome to the Pokedex!")
-			fmt.Printf("Usage:\n\n")
-			for _, command := range commands {
-				fmt.Printf("%s: %s\n", command.name, command.description)
-			}
-			return nil
-		},
+		callback:    func(config *Config) error { return commandHelp(config, config.Commands) },
 	}
 
-	commands["exit"] = cliCommand{
+	config.Commands["exit"] = cliCommand{
 		name:        "exit",
 		description: "Exit the Pokedex",
 		callback:    commandExit,
 	}
 
-	commands["map"] = cliCommand{
+	config.Commands["map"] = cliCommand{
 		name:        "map",
 		description: "Displays the next 20 location areas in the Pokemon world",
-		callback:    commandMap,
+		callback:    func(config *Config) error { return commandMap(config, config.Cache) },
 	}
 
-	commands["mapb"] = cliCommand{
+	config.Commands["mapb"] = cliCommand{
 		name:        "mapb",
 		description: "Displays the previous 20 location areas in the Pokemon world",
-		callback:    commandMapb,
+		callback:    func(config *Config) error { return commandMap(config, config.Cache) },
 	}
-
-	return commands
-
 }
 
 func commandExit(config *Config) error {

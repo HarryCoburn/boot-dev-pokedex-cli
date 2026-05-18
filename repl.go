@@ -4,6 +4,9 @@ import (
 	"bufio"
 	"fmt"
 	"strings"
+	"time"
+
+	"github.com/HarryCoburn/boot-dev-pokedex-cli/internal/pokecache"
 )
 
 func setupREPL(scanner *bufio.Scanner) {
@@ -12,15 +15,17 @@ func setupREPL(scanner *bufio.Scanner) {
 		Previous:  nil,
 		Next:      &startURL,
 		apiCaller: nil,
+		Cache:     pokecache.NewCache(5 * time.Second),
+		Commands:  make(map[string]cliCommand),
 	}
 
-	commands := buildCommands(config)
+	buildCommands(config)
 
-	runREPL(scanner, commands, config)
+	runREPL(scanner, config)
 
 }
 
-func runREPL(scanner *bufio.Scanner, commands map[string]cliCommand, config *Config) {
+func runREPL(scanner *bufio.Scanner, config *Config) {
 	for {
 		fmt.Print("Pokedex > ")
 		if !scanner.Scan() {
@@ -31,12 +36,7 @@ func runREPL(scanner *bufio.Scanner, commands map[string]cliCommand, config *Con
 			continue
 		}
 
-		if cleanedInput[0] == "help" {
-			commandHelp(config, commands)
-			continue
-		}
-
-		command, exists := commands[cleanedInput[0]]
+		command, exists := config.Commands[cleanedInput[0]]
 		if exists {
 			command.callback(config)
 

@@ -7,10 +7,10 @@ import (
 
 func TestCommandMapCompleteness(t *testing.T) {
 	config := &Config{}
-	commands := buildCommands(config)
+	buildCommands(config)
 	expected := []string{"help", "exit", "map", "mapb"}
 	for _, key := range expected {
-		cmd, ok := commands[key]
+		cmd, ok := config.Commands[key]
 		if !ok {
 			t.Errorf("missing command %q", key)
 		}

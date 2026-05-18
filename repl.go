@@ -12,11 +12,8 @@ import (
 func setupREPL(scanner *bufio.Scanner) {
 	startURL := "https://pokeapi.co/api/v2/location-area/"
 	config := &Config{
-		Previous:  nil,
-		Next:      &startURL,
-		apiCaller: nil,
-		Cache:     pokecache.NewCache(5 * time.Second),
-		Commands:  make(map[string]cliCommand),
+		Next:  &startURL,
+		Cache: pokecache.NewCache(5 * time.Second),
 	}
 
 	buildCommands(config)

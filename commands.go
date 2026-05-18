@@ -35,10 +35,12 @@ type LocationAreaResponse struct {
 }
 
 func buildCommands(config *Config) {
+	config.Commands = make(map[string]cliCommand)
+
 	config.Commands["help"] = cliCommand{
 		name:        "help",
 		description: "Displays a help message",
-		callback:    func(config *Config) error { return commandHelp(config, config.Commands) },
+		callback:    commandHelp,
 	}
 
 	config.Commands["exit"] = cliCommand{
@@ -50,13 +52,13 @@ func buildCommands(config *Config) {
 	config.Commands["map"] = cliCommand{
 		name:        "map",
 		description: "Displays the next 20 location areas in the Pokemon world",
-		callback:    func(config *Config) error { return commandMap(config, config.Cache) },
+		callback:    commandMap,
 	}
 
 	config.Commands["mapb"] = cliCommand{
 		name:        "mapb",
 		description: "Displays the previous 20 location areas in the Pokemon world",
-		callback:    func(config *Config) error { return commandMap(config, config.Cache) },
+		callback:    commandMapb,
 	}
 }
 
@@ -66,10 +68,10 @@ func commandExit(config *Config) error {
 	return nil
 }
 
-func commandHelp(config *Config, commands map[string]cliCommand) error {
+func commandHelp(config *Config) error {
 	fmt.Println("Welcome to the Pokedex!")
 	fmt.Printf("Usage:\n\n")
-	for _, command := range commands {
+	for _, command := range config.Commands {
 		fmt.Printf("%s: %s\n", command.name, command.description)
 	}
 	return nil

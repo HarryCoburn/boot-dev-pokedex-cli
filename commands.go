@@ -78,26 +78,11 @@ func commandHelp(config *Config) error {
 }
 
 func commandMap(config *Config) error {
-	caller := config.apiCaller
-	if caller == nil {
-		caller = apiclient.CallAPI
+	if config.Next == nil {
+		fmt.Println("You're on the last page")
+		return nil
 	}
-	body, err := caller(*config.Next)
-	if err != nil {
-		return fmt.Errorf("API call failed")
-	}
-	var locations LocationAreaResponse
-	locationErr := json.Unmarshal(body, &locations)
-	if locationErr != nil {
-		return fmt.Errorf("Response returned no data to match the Location struct")
-	}
-	config.Next = locations.Next
-	config.Previous = locations.Previous
-	for _, location := range locations.Locations {
-		fmt.Println(location.Name)
-	}
-
-	return nil
+	return fetchLocations(config, *config.Next)
 }
 
 func commandMapb(config *Config) error {
@@ -105,24 +90,33 @@ func commandMapb(config *Config) error {
 		fmt.Println("You're on the first page")
 		return nil
 	}
+	return fetchLocations(config, *config.Previous)
+}
+
+func fetchLocations(config *Config, url string) error {
 	caller := config.apiCaller
 	if caller == nil {
 		caller = apiclient.CallAPI
 	}
-	body, err := caller(*config.Previous)
-	if err != nil {
-		return fmt.Errorf("API call failed")
+
+	body, exists := config.Cache.Get(url)
+	if !exists {
+		var err error
+		body, err = caller(url)
+		if err != nil {
+			return fmt.Errorf("API call failed")
+		}
+		config.Cache.Add(url, body)
 	}
+
 	var locations LocationAreaResponse
-	locationErr := json.Unmarshal(body, &locations)
-	if locationErr != nil {
-		return fmt.Errorf("Response returned no data to match the Location struct")
+	if err := json.Unmarshal(body, &locations); err != nil {
+		return fmt.Errorf("response returned no data to match the Location struct")
 	}
 	config.Next = locations.Next
 	config.Previous = locations.Previous
 	for _, location := range locations.Locations {
 		fmt.Println(location.Name)
 	}
-
 	return nil
 }

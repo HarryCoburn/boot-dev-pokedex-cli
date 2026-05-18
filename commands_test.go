@@ -3,6 +3,9 @@ package main
 import (
 	"encoding/json"
 	"testing"
+	"time"
+
+	"github.com/HarryCoburn/boot-dev-pokedex-cli/internal/pokecache"
 )
 
 func TestCommandMapCompleteness(t *testing.T) {
@@ -39,7 +42,8 @@ func TestCommandMapUpdatesConfig(t *testing.T) {
 
 	startURL := "https://example.com/start"
 	config := &Config{
-		Next: &startURL,
+		Next:  &startURL,
+		Cache: pokecache.NewCache(5 * time.Second),
 		apiCaller: func(url string) ([]byte, error) {
 			return body, nil
 		},

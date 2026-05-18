@@ -67,3 +67,15 @@ func TestRunREPL(t *testing.T) {
 		t.Errorf("expected 'Unknown command', got %q", buf.String())
 	}
 }
+
+// TestRunREPLHelpCommand
+
+//     Feed "help\n" as scanner input
+//     Capture stdout (same os.Pipe pattern already used in TestRunREPL)
+//     Provide a non-empty command map (from buildCommands) so help output is meaningful
+//     Assert output contains "Welcome to the Pokedex!"
+
+// TestRunREPLEmptyInput
+
+//     Feed "\n" (empty line) then EOF
+//     Assert REPL exits without panicking (no assertion on output needed — just must not crash)

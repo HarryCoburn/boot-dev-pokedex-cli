@@ -1,17 +1,39 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
+	"io"
+	"os"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/HarryCoburn/boot-dev-pokedex-cli/internal/pokecache"
 )
 
+func captureOutput(f func()) string {
+	r, w, _ := os.Pipe()
+	old := os.Stdout
+	os.Stdout = w
+
+	f()
+
+	w.Close()
+	os.Stdout = old
+
+	var buf bytes.Buffer
+	io.Copy(&buf, r)
+	return buf.String()
+}
+
 func TestCommandMapCompleteness(t *testing.T) {
 	config := &Config{}
 	buildCommands(config)
-	expected := []string{"help", "exit", "map", "mapb"}
+	expected := []string{"help", "exit", "map", "mapb", "explore", "catch", "inspect"}
+	if len(config.Commands) != len(expected) {
+		t.Errorf("expected %d commands, got %d", len(expected), len(config.Commands))
+	}
 	for _, key := range expected {
 		cmd, ok := config.Commands[key]
 		if !ok {
@@ -27,6 +49,18 @@ func TestCommandMapCompleteness(t *testing.T) {
 		if cmd.callback == nil {
 			t.Errorf("command %q has no callback", key)
 		}
+	}
+}
+
+func TestCommandHelp(t *testing.T) {
+	config := &Config{}
+	buildCommands(config)
+	output := captureOutput(func() {
+		commandHelp(config, "")
+	})
+
+	if !strings.Contains(output, "Welcome to the Pokedex!") {
+		t.Errorf("expected welcome message, got: %s", output)
 	}
 }
 

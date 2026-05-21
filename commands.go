@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"os"
 	"sort"
+	"strings"
 
 	"github.com/HarryCoburn/boot-dev-pokedex-cli/internal/apiclient"
 	"github.com/HarryCoburn/boot-dev-pokedex-cli/internal/pokecache"
@@ -104,13 +105,13 @@ func buildCommands(config *Config) {
 
 	config.Commands["explore"] = cliCommand{
 		name:        "explore",
-		description: "Explore what Pokemon are in a location.",
+		description: "Explore what Pokemon are in a location. Requires a location from map/mapb",
 		callback:    commandExplore,
 	}
 
 	config.Commands["catch"] = cliCommand{
 		name:        "catch",
-		description: "Attempt to catch a Pokemon.",
+		description: "Attempt to catch a Pokemon. Requires the name of a pokemon.",
 		callback:    commandCatch,
 	}
 
@@ -118,6 +119,12 @@ func buildCommands(config *Config) {
 		name:        "inspect",
 		description: "Inspect the stats of a pokemon in your pokedex",
 		callback:    commandInspect,
+	}
+
+	config.Commands["pokedex"] = cliCommand{
+		name:        "pokedex",
+		description: "Returns the pokemon you have caught for inspection",
+		callback:    commandPokedex,
 	}
 }
 
@@ -253,10 +260,12 @@ func commandCatch(config *Config, p string) error {
 
 	catchAttempt := rand.Intn(pokemon.Chance)
 	if catchAttempt <= 20 {
-		fmt.Printf("%s was caught!\n", p)
+		fmt.Printf("%s was caught!\n", strings.ToUpper(p[:1])+p[1:])
 		config.Pokedex[p] = pokemon
+		fmt.Printf("You may now inspect your %s with the inspect command.", p)
+		fmt.Println()
 	} else {
-		fmt.Printf("%s escaped!\n", p)
+		fmt.Printf("%s escaped!\n", strings.ToUpper(p[:1])+p[1:])
 	}
 	fmt.Println()
 	return nil
@@ -281,6 +290,22 @@ func commandInspect(config *Config, p string) error {
 	for _, poketype := range pokemon.Types {
 		fmt.Printf("- %s\n", poketype.Type.Name)
 	}
+	fmt.Println()
+	return nil
+}
+
+func commandPokedex(config *Config, p string) error {
+	fmt.Println()
+	if len(config.Pokedex) == 0 {
+		fmt.Println("Your Pokedex is empty! Go catch some Pokemon.")
+		fmt.Println()
+		return nil
+	}
+	fmt.Println("Your Pokedex:")
+	for _, pokemon := range config.Pokedex {
+		fmt.Printf("- %s", pokemon.Name)
+	}
+	fmt.Println()
 	fmt.Println()
 	return nil
 }

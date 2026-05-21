@@ -112,6 +112,12 @@ func buildCommands(config *Config) {
 		description: "Attempt to catch a Pokemon.",
 		callback:    commandCatch,
 	}
+
+	config.Commands["inspect"] = cliCommand{
+		name:        "inspect",
+		description: "Inspect the stats of a pokemon in your pokedex",
+		callback:    commandInspect,
+	}
 }
 
 func commandExit(config *Config, p string) error {
@@ -231,5 +237,26 @@ func commandCatch(config *Config, p string) error {
 	} else {
 		fmt.Printf("%s escaped!\n", p)
 	}
+	return nil
+}
+
+func commandInspect(config *Config, p string) error {
+	pokemon, exists := config.Pokedex[p]
+	if !exists {
+		fmt.Println("You have not caught that pokemon.\n")
+		return nil
+	}
+	fmt.Printf("Name: %s\n", pokemon.Name)
+	fmt.Printf("Height: %d\n", pokemon.Height)
+	fmt.Printf("Weight: %d\n", pokemon.Weight)
+	fmt.Printf("Stats:\n")
+	for _, stat := range pokemon.Stats {
+		fmt.Printf("- %s: %d\n", stat.Stat.Name, stat.BaseStat)
+	}
+	fmt.Printf("Types:\n")
+	for _, poketype := range pokemon.Types {
+		fmt.Printf("- %s\n", poketype.Type.Name)
+	}
+	fmt.Printf("\n")
 	return nil
 }

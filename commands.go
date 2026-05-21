@@ -243,7 +243,7 @@ func commandCatch(config *Config, p string) error {
 func commandInspect(config *Config, p string) error {
 	pokemon, exists := config.Pokedex[p]
 	if !exists {
-		fmt.Println("You have not caught that pokemon.\n")
+		fmt.Println("You have not caught that pokemon.")
 		return nil
 	}
 	fmt.Printf("Name: %s\n", pokemon.Name)

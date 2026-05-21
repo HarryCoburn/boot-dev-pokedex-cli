@@ -49,7 +49,7 @@ func TestCommandMapUpdatesConfig(t *testing.T) {
 		},
 	}
 
-	err := commandMap(config)
+	err := commandMap(config, "")
 
 	if err != nil {
 		t.Errorf("Expected nil, but got %v", err)
@@ -64,7 +64,7 @@ func TestCommandMapUpdatesConfig(t *testing.T) {
 
 func TestCommandMapbNilPrevious(t *testing.T) {
 	config := &Config{Previous: nil}
-	err := commandMapb(config)
+	err := commandMapb(config, "")
 	if err != nil {
 		t.Errorf("Expected nil, but got %v", err)
 	}

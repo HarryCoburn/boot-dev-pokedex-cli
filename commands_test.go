@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"os"
 	"strings"
@@ -96,6 +97,46 @@ func TestCommandMapUpdatesConfig(t *testing.T) {
 	}
 }
 
+func TestCommandMapFetchError(t *testing.T) {
+	startURL := "https://example.com/start"
+	config := &Config{
+		Next:  &startURL,
+		Cache: pokecache.NewCache(5 * time.Second),
+		apiCaller: func(url string) ([]byte, error) {
+			return nil, fmt.Errorf("network failure")
+		},
+	}
+
+	err := commandMap(config, "")
+	if err == nil {
+		t.Error("expected error, got nil")
+	}
+}
+
+func TestCommandMapBadJSON(t *testing.T) {
+	startURL := "https://example.com/start"
+	config := &Config{
+		Next:  &startURL,
+		Cache: pokecache.NewCache(5 * time.Second),
+		apiCaller: func(url string) ([]byte, error) {
+			return []byte("not valid json"), nil
+		},
+	}
+
+	err := commandMap(config, "")
+	if err == nil {
+		t.Error("expected error, got nil")
+	}
+}
+
+func TestCommandMapNilNext(t *testing.T) {
+	config := &Config{Next: nil}
+	err := commandMap(config, "")
+	if err != nil {
+		t.Errorf("Expected nil, but got %v", err)
+	}
+}
+
 func TestCommandMapbNilPrevious(t *testing.T) {
 	config := &Config{Previous: nil}
 	err := commandMapb(config, "")
@@ -103,30 +144,3 @@ func TestCommandMapbNilPrevious(t *testing.T) {
 		t.Errorf("Expected nil, but got %v", err)
 	}
 }
-
-// Additional tests?
-//
-// TestCommandMapAPIError
-
-//     Config with apiCaller returning (nil, error)
-//     Assert commandMap returns a non-nil error
-
-// TestCommandMapInvalidJSON
-
-//     Config with apiCaller returning ([]byte("not-json"), nil)
-//     Assert commandMap returns a non-nil error
-
-// TestCommandMapbUpdatesConfig
-
-//     Config with non-nil Previous and a mock apiCaller returning a valid LocationAreaResponse
-//     Assert error is nil, config.Next and config.Previous are updated to values from response
-
-// TestCommandMapbAPIError
-
-//     Config with non-nil Previous and apiCaller returning an error
-//     Assert commandMapb returns a non-nil error
-
-// TestCommandMapbInvalidJSON
-
-//     Config with non-nil Previous and apiCaller returning invalid JSON bytes
-//     Assert commandMapb returns a non-nil error

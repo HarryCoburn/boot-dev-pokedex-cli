@@ -43,10 +43,15 @@ func runREPL(scanner *bufio.Scanner, config *Config) {
 		}
 
 		if exists {
-			command.callback(config, param)
+			err := command.callback(config, param)
+			if err != nil {
+				fmt.Println(err)
+				fmt.Println()
+			}
 
 		} else {
 			fmt.Println("Unknown command")
+			fmt.Println()
 		}
 	}
 }

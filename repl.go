@@ -12,6 +12,7 @@ import (
 func setupREPL(scanner *bufio.Scanner) {
 	startURL := "https://pokeapi.co/api/v2/location-area/"
 	config := &Config{
+		Start: &startURL,
 		Next:  &startURL,
 		Cache: pokecache.NewCache(5 * time.Second),
 	}
@@ -34,8 +35,13 @@ func runREPL(scanner *bufio.Scanner, config *Config) {
 		}
 
 		command, exists := config.Commands[cleanedInput[0]]
+		var param string
+		if len(cleanedInput) > 1 {
+			param = cleanedInput[1]
+		}
+
 		if exists {
-			command.callback(config)
+			command.callback(config, param)
 
 		} else {
 			fmt.Println("Unknown command")

@@ -10,12 +10,13 @@ import (
 )
 
 type Config struct { // Holds our place in the API pages
-	Start     *string
-	Next      *string
-	Previous  *string
-	apiCaller func(string) ([]byte, error)
-	Cache     *pokecache.Cache
-	Commands  map[string]cliCommand
+	Start      *string
+	Next       *string
+	Previous   *string
+	PokemonURL *string
+	apiCaller  func(string) ([]byte, error)
+	Cache      *pokecache.Cache
+	Commands   map[string]cliCommand
 }
 
 type cliCommand struct {
@@ -46,6 +47,10 @@ type PokemonEncounters []struct {
 
 type ExploreResponse struct {
 	PokemonEncounters PokemonEncounters `json:"pokemon_encounters"`
+}
+
+type CatchResponse struct {
+	Chance int `json:"base_experience"`
 }
 
 func buildCommands(config *Config) {
@@ -82,9 +87,9 @@ func buildCommands(config *Config) {
 	}
 
 	config.Commands["catch"] = cliCommand{
-		name: "catch",
-		description: "Attempt to catch a Pokemon."
-		callback: commandCatch,
+		name:        "catch",
+		description: "Attempt to catch a Pokemon.",
+		callback:    commandCatch,
 	}
 }
 
@@ -187,6 +192,16 @@ func commandExplore(config *Config, loc string) error {
 }
 
 func commandCatch(config *Config, p string) error {
-	fmt.Printf("Throwing a Pokeball at %s ...", p)
+	fmt.Printf("Throwing a Pokeball at %s...\n", p)
+	var catchChance CatchResponse
+	res, err := fetch(config, *config.PokemonURL+p+"/")
+	if err != nil {
+		return fmt.Errorf("Catch request failed")
+	}
+
+	if err := json.Unmarshal(res, &catchChance); err != nil {
+		return fmt.Errorf("response returned no data to match the CatchResponse struct")
+	}
+	fmt.Printf("Catch chance is %d\n", catchChance.Chance)
 	return nil
 }

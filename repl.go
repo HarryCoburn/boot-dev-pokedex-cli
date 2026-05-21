@@ -11,10 +11,12 @@ import (
 
 func setupREPL(scanner *bufio.Scanner) {
 	startURL := "https://pokeapi.co/api/v2/location-area/"
+	pokemonURL := "https://pokeapi.co/api/v2/pokemon/"
 	config := &Config{
-		Start: &startURL,
-		Next:  &startURL,
-		Cache: pokecache.NewCache(5 * time.Second),
+		Start:      &startURL,
+		Next:       &startURL,
+		Cache:      pokecache.NewCache(5 * time.Second),
+		PokemonURL: &pokemonURL,
 	}
 
 	buildCommands(config)

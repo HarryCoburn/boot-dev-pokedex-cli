@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"os"
 
 	"github.com/HarryCoburn/boot-dev-pokedex-cli/internal/apiclient"
@@ -17,6 +18,7 @@ type Config struct { // Holds our place in the API pages
 	apiCaller  func(string) ([]byte, error)
 	Cache      *pokecache.Cache
 	Commands   map[string]cliCommand
+	Pokedex    map[string]PokemonStats
 }
 
 type cliCommand struct {
@@ -49,12 +51,31 @@ type ExploreResponse struct {
 	PokemonEncounters PokemonEncounters `json:"pokemon_encounters"`
 }
 
-type CatchResponse struct {
-	Chance int `json:"base_experience"`
+type PokemonStats struct {
+	Name   string `json:"name"`
+	Height int    `json:"height"`
+	Weight int    `json:"weight"`
+	Chance int    `json:"base_experience"`
+	Stats  []struct {
+		BaseStat int `json:"base_stat"`
+		Effort   int `json:"effort"`
+		Stat     struct {
+			Name string `json:"name"`
+			URL  string `json:"url"`
+		} `json:"stat"`
+	} `json:"stats"`
+	Types []struct {
+		Slot int `json:"slot"`
+		Type struct {
+			Name string `json:"name"`
+			URL  string `json:"url"`
+		} `json:"type"`
+	} `json:"types"`
 }
 
 func buildCommands(config *Config) {
 	config.Commands = make(map[string]cliCommand)
+	config.Pokedex = make(map[string]PokemonStats)
 
 	config.Commands["help"] = cliCommand{
 		name:        "help",
@@ -193,15 +214,22 @@ func commandExplore(config *Config, loc string) error {
 
 func commandCatch(config *Config, p string) error {
 	fmt.Printf("Throwing a Pokeball at %s...\n", p)
-	var catchChance CatchResponse
+	var pokemon PokemonStats
 	res, err := fetch(config, *config.PokemonURL+p+"/")
 	if err != nil {
 		return fmt.Errorf("Catch request failed")
 	}
 
-	if err := json.Unmarshal(res, &catchChance); err != nil {
+	if err := json.Unmarshal(res, &pokemon); err != nil {
 		return fmt.Errorf("response returned no data to match the CatchResponse struct")
 	}
-	fmt.Printf("Catch chance is %d\n", catchChance.Chance)
+	fmt.Printf("Catch chance is %d\n", pokemon.Chance)
+	catchAttempt := rand.Intn(pokemon.Chance)
+	if catchAttempt <= 20 {
+		fmt.Printf("%s was caught!\n", p)
+		config.Pokedex[p] = pokemon
+	} else {
+		fmt.Printf("%s escaped!\n", p)
+	}
 	return nil
 }

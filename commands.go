@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"sort"
 
 	"github.com/HarryCoburn/boot-dev-pokedex-cli/internal/apiclient"
 	"github.com/HarryCoburn/boot-dev-pokedex-cli/internal/pokecache"
@@ -127,11 +128,21 @@ func commandExit(config *Config, p string) error {
 }
 
 func commandHelp(config *Config, p string) error {
+	fmt.Println()
 	fmt.Println("Welcome to the Pokedex!")
 	fmt.Printf("Usage:\n\n")
-	for _, command := range config.Commands {
-		fmt.Printf("%s: %s\n", command.name, command.description)
+
+	keys := make([]string, 0, len(config.Commands))
+	for k := range config.Commands {
+		keys = append(keys, k)
 	}
+	sort.Strings(keys)
+
+	for _, k := range keys {
+		cmd := config.Commands[k]
+		fmt.Printf("%s: %s\n", cmd.name, cmd.description)
+	}
+	fmt.Println()
 	return nil
 }
 
